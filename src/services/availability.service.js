@@ -1,0 +1,1 @@
+export { checkAvailability } from '../db/checkAvailability.js';
