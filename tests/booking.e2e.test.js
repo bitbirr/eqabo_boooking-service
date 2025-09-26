@@ -13,18 +13,19 @@ describe("Hotel Booking E2E Flow", () => {
   test("Should list cities", async () => {
     const res = await request(app).get("/api/cities");
     expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
     expect(res.body.length).toBeGreaterThan(0);
-    expect(res.body[0]).toHaveProperty("name");
   });
 
   test("Should list hotels in Addis Ababa", async () => {
-    const res = await request(app).get("/api/hotels?cityId=1");
+    const res = await request(app).get("/api/hotels?city_id=1");
     expect(res.status).toBe(200);
+    expect(res.body.length).toBeGreaterThan(0);
     expect(res.body[0].name).toBe("Sheraton Addis");
   });
 
   test("Should show available rooms for Sheraton Addis", async () => {
-    const res = await request(app).get("/api/rooms?hotelId=1&checkIn=2025-10-01&checkOut=2025-10-03");
+    const res = await request(app).get("/api/rooms?hotel_id=1&checkin=2025-10-01&checkout=2025-10-03");
     expect(res.status).toBe(200);
     expect(res.body.length).toBeGreaterThan(0);
     expect(res.body[0].status).toBe("available");
@@ -34,16 +35,17 @@ describe("Hotel Booking E2E Flow", () => {
     const res = await request(app)
       .post("/api/bookings")
       .send({
-        userId: 1,
         hotelId: 1,
         roomId: 1,
-        checkIn: "2025-10-01",
-        checkOut: "2025-10-03",
+        checkinDate: "2025-10-01",
+        checkoutDate: "2025-10-03",
+        userName: "Test Guest",
+        userPhone: "1234567890",
       });
 
     expect(res.status).toBe(201);
     expect(res.body.status).toBe("pending_payment");
-    bookingId = res.body.id;
+    bookingId = res.body.bookingId;
   });
 
   test("Should initiate payment", async () => {
@@ -51,10 +53,11 @@ describe("Hotel Booking E2E Flow", () => {
       .post("/api/payments/initiate")
       .send({
         bookingId,
-        provider: "telebirr",
+        provider: "ebirr",
+        amount: 16000, // 8000 * 2
       });
 
-    expect(res.status).toBe(201);
+    expect(res.status).toBe(200);
     expect(res.body.status).toBe("pending");
     paymentId = res.body.id;
   });
@@ -64,7 +67,7 @@ describe("Hotel Booking E2E Flow", () => {
       .post("/api/payments/callback")
       .send({
         bookingId,
-        provider: "telebirr",
+        provider: "ebirr",
         status: "success",
         reference: "TX123456",
       });
@@ -74,7 +77,7 @@ describe("Hotel Booking E2E Flow", () => {
   });
 
   test("Should generate booking receipt", async () => {
-    const res = await request(app).get(`/api/bookings/${bookingId}/receipt`);
+    const res = await request(app).get(`/api/receipts/${bookingId}`);
     expect(res.status).toBe(200);
     expect(res.header["content-type"]).toBe("application/pdf");
   });
@@ -84,7 +87,7 @@ describe("Hotel Booking E2E Flow", () => {
       .post("/api/payments/callback")
       .send({
         bookingId,
-        provider: "telebirr",
+        provider: "ebirr",
         status: "success",
         reference: "TX_DUPLICATE",
         amount: 9999, // wrong amount

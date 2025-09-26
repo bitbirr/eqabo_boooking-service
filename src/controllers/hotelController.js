@@ -13,8 +13,8 @@ export const getCities = async (req, res) => {
 // Get hotels, optionally filtered by city
 export const getHotels = async (req, res) => {
   try {
-    const { city } = req.query;
-    const hotels = await listHotels(city);
+    const { city_id } = req.query;
+    const hotels = await listHotels(city_id);
     res.status(200).json(hotels);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching hotels', error });
@@ -30,6 +30,20 @@ export const getHotelRooms = async (req, res) => {
       return res.status(400).json({ message: 'checkin and checkout dates are required' });
     }
     const rooms = await listRoomsByHotelWithAvailability(hotelId, checkin, checkout);
+    res.status(200).json(rooms);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching rooms', error });
+  }
+};
+
+// Get rooms with availability
+export const getRooms = async (req, res) => {
+  try {
+    const { hotel_id, checkin, checkout } = req.query;
+    if (!hotel_id || !checkin || !checkout) {
+      return res.status(400).json({ message: 'hotel_id, checkin and checkout dates are required' });
+    }
+    const rooms = await listRoomsByHotelWithAvailability(hotel_id, checkin, checkout);
     res.status(200).json(rooms);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching rooms', error });

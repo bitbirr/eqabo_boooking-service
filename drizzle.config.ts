@@ -8,5 +8,5 @@ export default defineConfig({
     connectionString: process.env.DATABASE_URL!, // Neon connection string
   },
   verbose: true,
-  strict: true,
+  strict: false,
 });

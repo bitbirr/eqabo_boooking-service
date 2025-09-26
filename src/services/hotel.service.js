@@ -6,9 +6,9 @@ export const listCities = async () => {
   return await db.select().from(cities);
 };
 
-export const listHotels = async (city) => {
-  if (city) {
-    return await db.select().from(hotels).where(eq(hotels.city, city));
+export const listHotels = async (cityId) => {
+  if (cityId) {
+    return await db.select().from(hotels).where(eq(hotels.cityId, parseInt(cityId)));
   }
   return await db.select().from(hotels);
 };

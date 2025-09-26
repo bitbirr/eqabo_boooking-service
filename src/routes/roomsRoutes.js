@@ -1,33 +1,16 @@
 import { Router } from 'express';
-import { getHotels, getHotelRooms } from '../controllers/hotelController.js';
+import { getRooms } from '../controllers/hotelController.js';
 
 const router = Router();
 
 /**
  * @swagger
- * /hotels:
+ * /rooms:
  *   get:
- *     summary: List hotels, optionally filtered by city
+ *     summary: Check room availability
  *     parameters:
  *       - in: query
- *         name: city_id
- *         schema:
- *           type: integer
- *         description: City ID to filter hotels
- *     responses:
- *       200:
- *         description: A list of hotels
- */
-router.get('/', getHotels);
-
-/**
- * @swagger
- * /hotels/{hotelId}/rooms:
- *   get:
- *     summary: List rooms for a hotel with availability
- *     parameters:
- *       - in: path
- *         name: hotelId
+ *         name: hotel_id
  *         required: true
  *         schema:
  *           type: integer
@@ -47,6 +30,6 @@ router.get('/', getHotels);
  *       200:
  *         description: A list of rooms with availability
  */
-router.get('/:hotelId/rooms', getHotelRooms);
+router.get('/', getRooms);
 
 export default router;

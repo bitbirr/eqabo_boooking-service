@@ -18,31 +18,49 @@ export async function seedDatabase() {
   await db.delete(schema.users);
 
   // Insert cities
-  const [addis, lalibela] = await db.insert(schema.cities).values([
-    { id: 1, name: "Addis Ababa" },
-    { id: 2, name: "Lalibela" },
+  const cityInserts = await db.insert(schema.cities).values([
+    { name: "Addis Ababa" },
+    { name: "Lalibela" },
   ]).returning();
 
+  const addis = cityInserts.find(c => c.name === "Addis Ababa");
+  const lalibela = cityInserts.find(c => c.name === "Lalibela");
+
   // Insert hotels
-  const [sheraton, hyatt, mountainView] = await db.insert(schema.hotels).values([
-    { id: 1, cityId: addis.id, name: "Sheraton Addis", description: "Luxury hotel" },
-    { id: 2, cityId: addis.id, name: "Hyatt Addis", description: "Comfortable hotel" },
-    { id: 3, cityId: lalibela.id, name: "Mountain View Lalibela", description: "Scenic hotel" },
+  const hotelInserts = await db.insert(schema.hotels).values([
+    { cityId: addis.id, name: "Sheraton Addis", address: "123 Main St" },
+    { cityId: addis.id, name: "Hyatt Addis", address: "456 Elm St" },
+    { cityId: lalibela.id, name: "Mountain View Lalibela", address: "789 Hill Rd" },
   ]).returning();
 
   // Insert rooms
-  await db.insert(schema.rooms).values([
-    { id: 1, hotelId: sheraton.id, name: "Deluxe Room", price: "8000", status: "available" },
-    { id: 2, hotelId: sheraton.id, name: "Standard Room", price: "4000", status: "available" },
-    { id: 3, hotelId: hyatt.id, name: "Suite", price: "12000", status: "reserved" },
-  ]);
+  const roomInserts = await db.insert(schema.rooms).values([
+    { hotelId: hotelInserts[0].id, roomNumber: "101", type: "Deluxe Room", price: "8000", maxGuests: 2, status: "available" },
+    { hotelId: hotelInserts[0].id, roomNumber: "102", type: "Standard Room", price: "4000", maxGuests: 2, status: "available" },
+    { hotelId: hotelInserts[1].id, roomNumber: "101", type: "Suite", price: "12000", maxGuests: 4, status: "reserved" },
+  ]).returning();
 
   // Insert test user
-  await db.insert(schema.users).values({
-    id: 1,
+  const userInserts = await db.insert(schema.users).values({
     email: "guest@example.com",
     name: "Test Guest",
+  }).returning();
+
+  // Insert a booking for the reserved room
+  const reservedRoom = roomInserts.find(r => r.status === "reserved");
+  await db.insert(schema.bookings).values({
+    userId: userInserts[0].id,
+    userName: "Test Guest",
+    userPhone: "1234567890",
+    hotelId: reservedRoom.hotelId,
+    roomId: reservedRoom.id,
+    checkinDate: new Date('2025-10-01'),
+    checkoutDate: new Date('2025-10-03'),
+    status: "confirmed",
+    totalAmount: "24000", // 12000 * 2
   });
 
   await client.end();
 }
+
+seedDatabase().catch(console.error);

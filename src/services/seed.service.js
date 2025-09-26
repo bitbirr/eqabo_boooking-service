@@ -1,18 +1,26 @@
 import { db } from '../config/db.js';
-import { hotels, rooms, users, bookings } from '../db/schema.js';
-import bcrypt from 'bcrypt';
+import { cities, hotels, rooms, users, bookings } from '../db/schema.js';
 
 export const seedDemoData = async () => {
+  // Insert cities
+  const cityInserts = await db
+    .insert(cities)
+    .values([
+      { name: 'Addis Ababa' },
+      { name: 'Lalibela' },
+    ])
+    .returning();
+
   // Insert users
-  await db.insert(users).values([
-    {
-      name: 'guest',
-      email: 'guest@example.com',
-      phone: '1234567890',
-      passwordHash: await bcrypt.hash('password', 10),
-      role: 'user',
-    },
-  ]);
+  const userInserts = await db
+    .insert(users)
+    .values([
+      {
+        name: 'John Doe',
+        email: 'john@example.com',
+      },
+    ])
+    .returning();
 
   // Insert hotels
   const hotelInserts = await db
@@ -20,45 +28,41 @@ export const seedDemoData = async () => {
     .values([
       {
         name: 'Sheraton Addis',
-        city: 'Addis Ababa',
+        cityId: cityInserts.find(c => c.name === 'Addis Ababa').id,
         address: '123 Main St',
-        description: 'A luxurious hotel in Addis Ababa.',
       },
       {
         name: 'Hyatt Addis',
-        city: 'Addis Ababa',
+        cityId: cityInserts.find(c => c.name === 'Addis Ababa').id,
         address: '456 Elm St',
-        description: 'Comfortable hotel in Addis Ababa.',
       },
       {
         name: 'Mountain View Lalibela',
-        city: 'Lalibela',
+        cityId: cityInserts.find(c => c.name === 'Lalibela').id,
         address: '789 Hill Rd',
-        description: 'Scenic hotel in Lalibela.',
       },
       {
         name: 'Historic Lalibela Inn',
-        city: 'Lalibela',
+        cityId: cityInserts.find(c => c.name === 'Lalibela').id,
         address: '101 Rock St',
-        description: 'Historic inn in Lalibela.',
       },
     ])
     .returning();
 
   // Insert rooms for each hotel (3 rooms per hotel)
   const roomData = [
-    { type: 'Deluxe Room', price: 8000 },
-    { type: 'Standard Room', price: 4000 },
-    { type: 'Suite', price: 12000 },
+    { roomNumber: '101', type: 'Deluxe Room', price: 8000, maxGuests: 2 },
+    { roomNumber: '102', type: 'Standard Room', price: 4000, maxGuests: 2 },
+    { roomNumber: '103', type: 'Suite', price: 12000, maxGuests: 4 },
   ];
 
   for (const hotel of hotelInserts) {
-    const roomInserts = roomData.map((data, index) => ({
+    const roomInserts = roomData.map((data) => ({
       hotelId: hotel.id,
-      roomNumber: `${index + 1}01`,
+      roomNumber: data.roomNumber,
       type: data.type,
-      price: data.price,
-      maxGuests: 2,
+      price: data.price.toString(),
+      maxGuests: data.maxGuests,
     }));
     await db.insert(rooms).values(roomInserts);
   }
@@ -70,14 +74,15 @@ export const seedDemoData = async () => {
 
   for (const room of reservedRooms) {
     await db.insert(bookings).values({
-      userName: 'guest',
+      userId: userInserts[0].id,
+      userName: 'John Doe',
       userPhone: '1234567890',
       hotelId: room.hotelId,
       roomId: room.id,
       checkinDate: new Date('2025-10-01'),
       checkoutDate: new Date('2025-10-03'),
       status: 'confirmed',
-      totalAmount: room.price * 2, // 2 nights
+      totalAmount: (parseFloat(room.price) * 2).toString(), // 2 nights
     });
   }
 

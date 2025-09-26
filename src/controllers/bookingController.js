@@ -1,4 +1,5 @@
 import { createBooking, getBookingById } from '../services/booking.service.js';
+import PDFDocument from 'pdfkit';
 
 // Create a new booking
 export const createNewBooking = async (req, res) => {
@@ -42,16 +43,32 @@ export const fetchBookingDetails = async (req, res) => {
 // Get booking receipt
 export const getBookingReceipt = async (req, res) => {
   try {
-    const { bookingId } = req.params;
-    const booking = await getBookingById(bookingId);
+    const { booking_id } = req.params;
+    const booking = await getBookingById(booking_id);
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
-    // For now, return JSON. In production, generate PDF
-    res.status(200).json({
-      booking,
-      // payment details would be fetched here
-    });
+
+    // Generate PDF
+    const doc = new PDFDocument();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=receipt-${booking.id}.pdf`);
+    doc.pipe(res);
+
+    doc.fontSize(20).text('Booking Receipt', { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(12).text(`Booking ID: ${booking.id}`);
+    doc.text(`Hotel ID: ${booking.hotelId}`);
+    doc.text(`Room ID: ${booking.roomId}`);
+    doc.text(`Check-in: ${booking.checkinDate}`);
+    doc.text(`Check-out: ${booking.checkoutDate}`);
+    doc.text(`User Name: ${booking.userName}`);
+    doc.text(`User Phone: ${booking.userPhone}`);
+    doc.text(`Status: ${booking.status}`);
+    doc.text(`Total Amount: ${booking.totalAmount}`);
+    doc.text(`Created At: ${booking.createdAt}`);
+
+    doc.end();
   } catch (error) {
     res.status(500).json({ message: 'Error generating receipt', error });
   }
