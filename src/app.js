@@ -8,6 +8,7 @@ import pinoHttp from 'pino-http';
 import routes from './routes/index.js';
 import { setupSwagger } from './config/swagger.js';
 import { errorHandler } from './middlewares/errorHandler.js';
+import pinoPretty from 'pino-pretty';
 
 dotenv.config();
 
@@ -20,7 +21,7 @@ app.use(compression());
 app.use(express.json({ limit: '1mb' }));
 
 // Logging
-const logger = pino({ prettyPrint: process.env.NODE_ENV !== 'production' });
+const logger = pino(process.env.NODE_ENV !== 'production' ? pinoPretty() : {});
 app.use(pinoHttp({ logger }));
 
 // Routes
