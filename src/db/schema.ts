@@ -23,35 +23,37 @@ export const paymentStatusEnum = pgEnum("payment_status", [
   "success",
   "failed",
 ]);
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "info",
+  "warning",
+  "error",
+]);
+export const aiLogTypeEnum = pgEnum("ai_log_type", [
+  "query",
+  "response",
+]);
 
 // 🔹 USERS
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   name: text("name").notNull(),
+  role: text("role").notNull(), // e.g., "admin", "user"
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   emailIdx: index("users_email_idx").on(table.email),
 }));
 
-// 🔹 CITIES
-export const cities = pgTable("cities", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull().unique(),
-}, (table) => ({
-  nameIdx: index("cities_name_idx").on(table.name),
-}));
-
 // 🔹 HOTELS
 export const hotels = pgTable("hotels", {
   id: serial("id").primaryKey(),
-  cityId: integer("city_id")
-    .references(() => cities.id, { onDelete: "cascade" })
+  ownerId: integer("owner_id")
+    .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
   name: text("name").notNull(),
   address: text("address").notNull(),
 }, (table) => ({
-  cityIdIdx: index("hotels_city_id_idx").on(table.cityId),
+  ownerIdIdx: index("hotels_owner_id_idx").on(table.ownerId),
   nameIdx: index("hotels_name_idx").on(table.name),
 }));
 
@@ -113,4 +115,28 @@ export const payments = pgTable("payments", {
 }, (table) => ({
   bookingIdIdx: index("payments_booking_id_idx").on(table.bookingId),
   statusIdx: index("payments_status_idx").on(table.status),
+}));
+
+// 🔹 NOTIFICATIONS
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: integer("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  type: notificationTypeEnum("type").notNull(),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("notifications_user_id_idx").on(table.userId),
+}));
+
+// 🔹 AI LOGS
+export const aiLogs = pgTable("ai_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  type: aiLogTypeEnum("type").notNull(),
+  query: text("query").notNull(),
+  response: text("response").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  typeIdx: index("ai_logs_type_idx").on(table.type),
 }));

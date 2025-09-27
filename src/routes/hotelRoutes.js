@@ -18,7 +18,14 @@ const router = Router();
  *       200:
  *         description: A list of hotels
  */
-router.get('/', getHotels);
+router.get('/', async (req, res) => {
+  try {
+    await getHotels(req, res);
+  } catch (error) {
+    console.error('Error in hotels route:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 
 /**
  * @swagger
@@ -47,6 +54,13 @@ router.get('/', getHotels);
  *       200:
  *         description: A list of rooms with availability
  */
-router.get('/:hotelId/rooms', getHotelRooms);
+router.get('/:hotelId/rooms', async (req, res) => {
+  try {
+    await getHotelRooms(req, res);
+  } catch (error) {
+    console.error('Error in hotel rooms route:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 
 export default router;

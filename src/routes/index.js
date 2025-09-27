@@ -8,8 +8,24 @@ import receiptsRoutes from './receiptsRoutes.js';
 
 const router = Router();
 
-router.use('/cities', citiesRoutes);
-router.use('/hotels', hotelRoutes);
+router.use('/cities', async (req, res) => {
+  try {
+    await citiesRoutes(req, res);
+  } catch (error) {
+    console.error('Error in cities route:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+router.use('/hotels', async (req, res) => {
+  try {
+    await hotelRoutes(req, res);
+  } catch (error) {
+    console.error('Error in hotels route:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 router.use('/rooms', roomsRoutes);
 router.use('/bookings', bookingRoutes);
 router.use('/payments', paymentRoutes);

@@ -2,6 +2,7 @@ import { listCities, listHotels, listRoomsByHotelWithAvailability } from '../ser
 
 // Get all cities
 export const getCities = async (req, res) => {
+  console.log('Fetching cities...');
   try {
     const cities = await listCities();
     res.status(200).json(cities.map(c => c.name));
@@ -12,6 +13,7 @@ export const getCities = async (req, res) => {
 
 // Get hotels, optionally filtered by city
 export const getHotels = async (req, res) => {
+  console.log('Fetching hotels...');
   try {
     const { city_id } = req.query;
     const hotels = await listHotels(city_id);

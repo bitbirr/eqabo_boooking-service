@@ -5,6 +5,7 @@ const logger = pino();
 
 const PORT = process.env.PORT || 3000;
 
+logger.info('Initializing server...');
 app.listen(PORT, () => {
   logger.info(`Server listening on port ${PORT}`);
 });
@@ -17,6 +18,6 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
-  logger.error('Uncaught Exception:', err);
+  logger.error('Uncaught Exception:', err.message, err.stack);
   process.exit(1);
 });

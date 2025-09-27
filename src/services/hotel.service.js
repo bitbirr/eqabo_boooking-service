@@ -3,10 +3,21 @@ import { hotels, rooms, cities, bookings } from '../db/schema.js';
 import { eq, and, or, lt, gt } from 'drizzle-orm';
 
 export const listCities = async () => {
-  return await db.select().from(cities);
+  console.log('Fetching cities from the database...');
+  console.log('Fetching cities from the database...');
+  console.log('Fetching cities from the database...');
+  try {
+    return await db.select().from(cities);
+  } catch (error) {
+    console.error('Error in listCities:', error);
+    throw error; // Re-throw the error to be handled upstream
+  }
 };
 
 export const listHotels = async (cityId) => {
+  console.log('Fetching hotels from the database...');
+  console.log('Fetching hotels from the database...');
+  console.log('Fetching hotels from the database...');
   if (cityId) {
     return await db.select().from(hotels).where(eq(hotels.cityId, parseInt(cityId)));
   }

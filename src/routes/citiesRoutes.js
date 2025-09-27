@@ -18,6 +18,13 @@ const router = Router();
  *               items:
  *                 type: string
  */
-router.get('/', getCities);
+router.get('/', async (req, res) => {
+  try {
+    await getCities(req, res);
+  } catch (error) {
+    console.error('Error in cities route:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 
 export default router;

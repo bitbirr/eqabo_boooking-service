@@ -14,17 +14,18 @@ dotenv.config();
 
 const app = express();
 
+// Logging
+const logger = pino(process.env.NODE_ENV !== 'production' ? pinoPretty() : {});
+
 // Middleware
+logger.info('Setting up middleware...');
 app.use(helmet());
 app.use(cors({ origin: true, credentials: true }));
 app.use(compression());
 app.use(express.json({ limit: '1mb' }));
 
-// Logging
-const logger = pino(process.env.NODE_ENV !== 'production' ? pinoPretty() : {});
-app.use(pinoHttp({ logger }));
-
 // Routes
+logger.info('Setting up routes...');
 app.use('/api', routes);
 setupSwagger(app);
 
